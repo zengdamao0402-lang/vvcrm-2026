@@ -1090,11 +1090,13 @@ function IntakeModal({ onClose, onAddLead, onAddInquiry }) {
   function update(k, v) { setForm((f) => ({ ...f, [k]: v })); }
 
     async function handleSave() {
-    if (!form.contact_name || !form.country) return;
+    console.log('handleSave called', form.contact_name, form.country, form.models);
+    if (!form.contact_name || !form.country) { alert('请填写联系人和目标国家'); return; }
     const modelsArr = (form.models || []).filter(Boolean);
     const modelsStr = modelsArr.join(", ");
-    if (!modelsStr) return;
+    if (!modelsStr) { alert('请至少添加一个车型'); return; }
     setSaving(true);
+    console.log('saving...');
     const now = new Date().toISOString();
     await onAddLead({
       full_name: form.contact_name,
@@ -1145,6 +1147,7 @@ function IntakeModal({ onClose, onAddLead, onAddInquiry }) {
       completed: false,
     });
     setSaving(false);
+    console.log('save done, closing');
     onClose();
   }
 
