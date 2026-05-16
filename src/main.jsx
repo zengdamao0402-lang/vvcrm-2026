@@ -1106,7 +1106,7 @@ function IntakeModal({ onClose, onAddLead, onAddInquiry }) {
       whatsapp: form.whatsapp || "",
       qualification: form.qualification || "",
       destination_country: form.country,
-      port: form.port || "",
+      destination_port: form.port || "",
       brand: form.brand || "",
       target_model: modelsStr,
       year: form.year || "",
