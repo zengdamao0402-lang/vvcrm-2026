@@ -278,6 +278,9 @@ function App() {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       setAuthChecked(true);
+    }).catch(() => {
+      setAuthChecked(true);
+      setLoading(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
     return () => subscription.unsubscribe();
