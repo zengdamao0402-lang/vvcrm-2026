@@ -35,6 +35,8 @@ import {
   UsersRound,
   X,
   Zap,
+  RefreshCw,
+  ArrowRightLeft,
 } from 'lucide-react';
 import {
   Cell,
@@ -524,6 +526,7 @@ function Sidebar({ activePage, dueCount, onPageChange }) {
           </button>
         ))}
       </nav>
+      <ExchangeRateWidget />
       <div className="mt-8 rounded-3xl border border-emerald-300/20 bg-emerald-300/10 p-4">
         <div className="flex items-center gap-2 text-sm font-semibold text-emerald-100"><ShieldCheck size={18} /> LHD 左舵合规</div>
         <p className="mt-2 text-xs leading-5 text-slate-300">所有商机默认带有左舵验证标记，方便出口合规审查</p>
@@ -553,6 +556,73 @@ function Header({ activePage, dueCount, onOpenIntake, onLogout, onOpenMobileNav 
         </div>
       </div>
     </header>
+  );
+}
+
+// ---- Exchange Rate Widget (Sidebar) ------------------------------------------
+function ExchangeRateWidget() {
+  const [rates, setRates] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  const fetchRates = useCallback(async () => {
+    try {
+      const res = await fetch('https://open.er-api.com/v6/latest/USD');
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json();
+      setRates({ USD: 1, CNY: data.rates.CNY, EUR: data.rates.EUR });
+      setLastUpdated(new Date());
+      setError(null);
+      if (loading) setLoading(false);
+    } catch (e) {
+      setError(e.message);
+      setLoading(false);
+    }
+  }, [loading]);
+
+  useEffect(() => { fetchRates(); const t = setInterval(fetchRates, 60000); return () => clearInterval(t); }, [fetchRates]);
+
+  const pairs = [
+    { from: 'USD', to: 'CNY', label: 'USD/CNY', rate: rates?.CNY, icon: '\$' },
+    { from: 'EUR', to: 'CNY', label: 'EUR/CNY', rate: rates?.EUR ? (rates.CNY / rates.EUR).toFixed(2) : null, icon: '€' },
+    { from: 'EUR', to: 'USD', label: 'EUR/USD', rate: rates?.EUR ? (1 / rates.EUR).toFixed(2) : null, icon: 'EUR' },
+  ];
+
+  return (
+    <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <CircleDollarSign size={16} className="text-emerald-300" />
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">Live Rates</span>
+        </div>
+        <button onClick={fetchRates} title="Refresh" className="grid h-7 w-7 place-items-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition">
+          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+        </button>
+      </div>
+      {error ? (
+        <p className="mt-3 text-xs text-red-400">Failed to load</p>
+      ) : (
+        <div className="mt-3 space-y-2.5">
+          {pairs.map(p => (
+            <div key={p.to + p.from} className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-xs text-slate-400">
+                <span className="grid h-5 w-7 place-items-center rounded-md bg-white/10 text-[11px] font-bold text-white">{p.icon}</span>
+                {p.label}
+              </span>
+              <span className="text-xs font-semibold tabular-nums text-white">
+                {loading
+                  ? <span className="inline-block h-3.5 w-14 animate-pulse rounded bg-white/10" />
+                  : p.rate ? p.rate : '--'}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+      {lastUpdated && !error && (
+        <p className="mt-3 text-[10px] text-slate-500">Updated {lastUpdated.toLocaleTimeString('zh-CN')}</p>
+      )}
+    </div>
   );
 }
 
