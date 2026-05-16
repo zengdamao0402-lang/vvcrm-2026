@@ -1,4 +1,4 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -12,6 +12,7 @@
 
 body {
   margin: 0;
+  overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
 }
 
