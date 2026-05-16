@@ -512,19 +512,7 @@ function App() {
               </section>
             </div>
           )}
-          {activePage === 'finance' && (
-            <div className="px-3 pb-8 pt-4 sm:px-6 lg:px-8">
-              <section className="panel">
-                <p className="eyebrow">?????</p>
-                <h2 className="section-title">Finance &amp; Pricing</h2>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">????????????????? USD/CNY?EUR/CNY?EUR/USD ??????? 60 ??????</p>
-                <div className="mt-6 rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-blue-50 p-6">
-                  <p className="text-sm font-semibold text-sky-950">???????open.er-api.com</p>
-                  <p className="mt-2 text-xs text-sky-700">??????????????????????</p>
-                </div>
-              </section>
-            </div>
-          )}
+{activePage === 'finance' && null}
         </main>
       </div>
       {isModalOpen && (
@@ -756,19 +744,7 @@ function MarketsPage({ leads, modelStats, tradeFlow, filteredLeads }) {
   );
 }
 
-function ModulePlaceholder({ activePage, onOpenIntake }) {
-  const [_, title] = pageTitles[activePage] ?? pageTitles.dashboard;
-  return (
-    <div className="px-4 pb-8 pt-4 sm:px-6 lg:px-8">
-      <section className="panel">
-        <p className="eyebrow">模块入口</p>
-        <h2 className="section-title">{title}</h2>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">当前模块已可以从左侧导航切换。完整业务页面会按照现有设计语言扩展；点击右上角 "添加询盘" 按钮开始录入。</p>
-        <button className="primary-button mt-5" onClick={onOpenIntake}><Sparkles size={18} />打开 添加询盘</button>
-      </section>
-    </div>
-  );
-}
+
 
 // ---- Dashboard -----------------------------------------------------------
 function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, activeFilterCount, inquiries, query, selectedLead, modelStats, tradeFlow, funnel, onQuery, onSetFilter, onSelectLead, onUpdateInquiry, onDeleteLead, onDeleteInquiry }) {
