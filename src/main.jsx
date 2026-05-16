@@ -479,8 +479,51 @@ function App() {
             />
           )}
           {activePage === 'contracts' && <ContractBuilder />}
-          {activePage !== 'dashboard' && activePage !== 'contracts' && (
-            <ModulePlaceholder activePage={activePage} onOpenIntake={() => setIsModalOpen(true)} />
+          {activePage === 'leads' && (
+            <div className="px-3 pb-8 pt-4 sm:px-6 lg:px-8">
+              <LeadsMemory
+                leads={leads}
+                inquiries={inquiries}
+                selectedLead={selectedLead}
+                query={query}
+                filters={filters}
+                filterOptions={filterOptions}
+                activeFilterCount={activeFilterCount}
+                onQuery={setQuery}
+                onSetFilter={setFilters}
+                onSelect={setSelectedLead}
+                onDelete={handleDeleteLead}
+                onUpdateLead={handleUpdateLead}
+                onUpdateInquiry={handleUpdateInquiry}
+                onDeleteInquiry={handleDeleteInquiry}
+              />
+            </div>
+          )}
+          {activePage === 'markets' && (
+            <MarketsPage leads={leads} modelStats={modelStats} tradeFlow={tradeFlow} filteredLeads={filteredLeads} />
+          )}
+          {activePage === 'intake' && (
+            <div className="px-3 pb-8 pt-4 sm:px-6 lg:px-8">
+              <section className="panel">
+                <p className="eyebrow">AI ????</p>
+                <h2 className="section-title">AI Intake Engine</h2>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">??????AI ????????????????????????</p>
+                <button className="primary-button mt-5" onClick={() => setIsModalOpen(true)}><Sparkles size={18} />?? AI ????</button>
+              </section>
+            </div>
+          )}
+          {activePage === 'finance' && (
+            <div className="px-3 pb-8 pt-4 sm:px-6 lg:px-8">
+              <section className="panel">
+                <p className="eyebrow">?????</p>
+                <h2 className="section-title">Finance &amp; Pricing</h2>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">????????????????? USD/CNY?EUR/CNY?EUR/USD ??????? 60 ??????</p>
+                <div className="mt-6 rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-blue-50 p-6">
+                  <p className="text-sm font-semibold text-sky-950">???????open.er-api.com</p>
+                  <p className="mt-2 text-xs text-sky-700">??????????????????????</p>
+                </div>
+              </section>
+            </div>
           )}
         </main>
       </div>
@@ -625,6 +668,90 @@ function ExchangeRateWidget() {
       {lastUpdated && !error && (
         <p className="mt-3 text-[10px] text-slate-500">Updated {lastUpdated.toLocaleTimeString('zh-CN')}</p>
       )}
+    </div>
+  );
+}
+
+// ---- Markets Page ----------------------------------------------------------
+function MarketsPage({ leads, modelStats, tradeFlow, filteredLeads }) {
+  const countries = useMemo(() => {
+    const map = {};
+    leads.forEach(l => {
+      if (l.destination_country) {
+        map[l.destination_country] = (map[l.destination_country] || 0) + 1;
+      }
+    });
+    return Object.entries(map).sort((a,b) => b[1]-a[1]).slice(0, 15);
+  }, [leads]);
+
+  const countryModels = useMemo(() => {
+    const map = {};
+    leads.forEach(l => {
+      if (l.destination_country) {
+        if (!map[l.destination_country]) map[l.destination_country] = {};
+        const model = l.brand ? l.brand + ' ' + l.target_model : l.target_model;
+        map[l.destination_country][model] = (map[l.destination_country][model] || 0) + 1;
+      }
+    });
+    return Object.entries(map).sort((a,b) =>
+      Object.values(b[1]).reduce((s,x)=>s+x,0) - Object.values(a[1]).reduce((s,x)=>s+x,0)
+    ).slice(0, 8);
+  }, [leads]);
+
+  return (
+    <div className="grid gap-5 px-3 pb-8 pt-4 sm:px-6 lg:grid-cols-[1.2fr_0.8fr] lg:px-8">
+      <section className="space-y-5">
+        <MarketInsight modelStats={modelStats} />
+        <div className="panel">
+          <div>
+            <p className="eyebrow">????</p>
+            <h2 className="section-title">?????? Top 15</h2>
+          </div>
+          <div className="mt-4 space-y-2">
+            {countries.length === 0 ? (
+              <p className="py-8 text-center text-sm text-slate-400">????</p>
+            ) : (
+              countries.map(([country, count], i) => (
+                <div key={country} className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-2.5">
+                  <span className="w-6 text-xs font-bold text-slate-400">#{i + 1}</span>
+                  <Globe2 size={16} className="text-[#2563EB]" />
+                  <span className="flex-1 text-sm font-medium text-slate-800">{country}</span>
+                  <span className="text-xs font-semibold text-[#2563EB]">{count} ???</span>
+                  <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200">
+                    <div className="h-full rounded-full bg-[#2563EB]" style={{ width: ((count / countries[0][1]) * 100) + '%' }} />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+        <div className="panel">
+          <div>
+            <p className="eyebrow">??x????</p>
+            <h2 className="section-title">????????</h2>
+          </div>
+          <div className="mt-4 space-y-3">
+            {countryModels.length === 0 ? (
+              <p className="py-8 text-center text-sm text-slate-400">????</p>
+            ) : (
+              countryModels.map(([country, models]) => (
+                <div key={country} className="rounded-xl border border-slate-100 p-3">
+                  <p className="text-sm font-semibold text-slate-800">{country}</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {Object.entries(models).sort((a,b) => b[1]-a[1]).slice(0, 5).map(([model, cnt]) => (
+                      <span key={model} className="rounded-lg bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{model} x{cnt}</span>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+      <aside className="space-y-5 pt-5 lg:pt-0">
+        <TradeFlow tradeFlow={tradeFlow} />
+        <StrategicSignal leads={filteredLeads} />
+      </aside>
     </div>
   );
 }
