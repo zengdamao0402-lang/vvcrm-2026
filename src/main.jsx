@@ -23,6 +23,7 @@ import {
   LogOut,
   Menu,
   MessageSquareText,
+  Pencil,
   Search,
   Send,
   ShieldCheck,
@@ -46,8 +47,8 @@ import clsx from 'clsx';
 import { supabase } from './supabaseClient';
 import './styles.css';
 // ---- constants ----------------------------------------------------------------
-const STAGES = ['AI Intake', 'Intent', 'Quote Sent', 'Deposit Pending', 'Deposit Paid', 'Balance Closed', 'Lost'];
-const STAGE_CN = ['AI 解析录入', '意向', '已发送报价', '待收定金', '已付定金', '尾款结清', '失败'];
+const STAGES = ['Add Inquiry', 'Intent', 'Quote Sent', 'Deposit Pending', 'Deposit Paid', 'Balance Closed', 'Lost'];
+const STAGE_CN = ['添加询盘录入', '意向', '已发送报价', '待收定金', '已付定金', '尾款结清', '失败'];
 const CHANNELS = ['WhatsApp', '小红书', '官网', 'Telegram', 'Instagram', '展会', '老客户推荐', '其他'];
 const COLORS = ['#2563EB', '#0EA5E9', '#6366F1', '#14B8A6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#84CC16', '#F97316'];
 
@@ -55,7 +56,7 @@ const todayForInput = new Date().toISOString().slice(0, 10);
 
 const pageTitles = {
   dashboard: ['DeepSea Professional', '首页看板'],
-  intake: ['AI Intake Engine', 'AI 询盘解析'],
+  intake: ['Add Inquiry', '添加询盘'],
   leads: ['Trade Memory', '商机记忆库'],
   markets: ['Country Intelligence', '去向国家'],
   finance: ['Finance & Pricing', '金融与报价'],
@@ -63,13 +64,32 @@ const pageTitles = {
 };
 
 const intakeJson = {
-  name: '',
-  country: '',
-  model: '',
-  source: '',
+  contact_name: '',
+  company_cn: '',
+  company_en: '',
+  title: '',
+  phone: '',
+  email: '',
   whatsapp: '',
+  qualification: '',
+  country: '',
+  port: '',
+  brand: '',
+  models: [''],
+  year: '',
+  power_type: '',
   steering: 'LHD',
+  color: '',
+  vin: '',
+  quantity: '',
+  moq: '',
+  target_price: '',
+  currency: 'USD',
+  trade_terms: '',
+  delivery_date: '',
+  source: '',
   request: '',
+  competitor: '',
 };
 
 const contractTemplateMergedRanges = [
@@ -369,7 +389,7 @@ function App() {
 
   const funnel = useMemo(() => {
     const stages = ['AI Intake', 'Intent', 'Quote Sent', 'Deposit Pending', 'Deposit Paid'];
-    const stageCN = ['AI 解析录入', '意向', '已发送报价', '待收定金', '已付定金'];
+    const stageCN = ['新询盘', '意向', '已发送报价', '待收定金', '已付定金'];
     const total = leads.length || 1;
     return stages.map((s, i) => {
       const count = leads.filter((l) => {
@@ -528,7 +548,7 @@ function Header({ activePage, dueCount, onOpenIntake, onLogout, onOpenMobileNav 
             <BellRing size={18} />
             {dueCount > 0 && <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">{dueCount}</span>}
           </button>
-          <button className="primary-button" onClick={onOpenIntake}><Sparkles size={18} />AI 解析询盘</button>
+          <button className="primary-button" onClick={onOpenIntake}><Sparkles size={18} />添加询盘</button>
           <button className="secondary-button" onClick={onLogout}><LogOut size={17} />退出</button>
         </div>
       </div>
@@ -543,8 +563,8 @@ function ModulePlaceholder({ activePage, onOpenIntake }) {
       <section className="panel">
         <p className="eyebrow">模块入口</p>
         <h2 className="section-title">{title}</h2>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">当前模块已可以从左侧导航切换。完整业务页面会按照现有设计语言扩展；AI 解析可直接使用右上角按钮打开弹窗。</p>
-        <button className="primary-button mt-5" onClick={onOpenIntake}><Sparkles size={18} />打开 AI 解析询盘</button>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">当前模块已可以从左侧导航切换。完整业务页面会按照现有设计语言扩展；点击右上角 "添加询盘" 按钮开始录入。</p>
+        <button className="primary-button mt-5" onClick={onOpenIntake}><Sparkles size={18} />打开 添加询盘</button>
       </section>
     </div>
   );
@@ -561,17 +581,20 @@ function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, ac
           <FollowUpReminder dueFollowUps={dueFollowUps} inquiries={inquiries} onUpdateInquiry={onUpdateInquiry} />
         </div>
         <LeadsMemory
-          leads={filteredLeads}
-          selectedLead={selectedLead}
-          query={query}
-          filters={filters}
-          filterOptions={filterOptions}
-          activeFilterCount={activeFilterCount}
-          onQuery={onQuery}
-          onSetFilter={onSetFilter}
-          onSelect={onSelectLead}
-          onDelete={onDeleteLead}
-        />
+            leads={filteredLeads}
+            inquiries={inquiries}
+            selectedLead={selectedLead}
+            query={query}
+            filters={filters}
+            filterOptions={filterOptions}
+            activeFilterCount={activeFilterCount}
+            onQuery={onQuery}
+            onSetFilter={onSetFilter}
+            onSelect={onSelectLead}
+            onDelete={onDeleteLead}
+            onUpdateInquiry={onUpdateInquiry}
+            onDeleteInquiry={onDeleteInquiry}
+          />
       </section>
       <aside className="space-y-5">
         <StrategicSignal leads={filteredLeads} />
@@ -594,7 +617,7 @@ function MarketInsight({ modelStats }) {
         <div className="mt-5 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
           <TrendingUp className="mx-auto text-slate-300" size={40} />
           <p className="mt-3 text-sm text-slate-500">暂无数据，添加客户后自动生成分布图</p>
-          <p className="mt-1 text-xs text-slate-400">使用右上角 "AI 解析询盘" 开始录入</p>
+          <p className="mt-1 text-xs text-slate-400">使用右上角 "添加询盘" 开始录入</p>
         </div>
       ) : (
         <>
@@ -701,27 +724,88 @@ function FollowUpReminder({ dueFollowUps, onUpdateInquiry }) {
 }
 
 // ---- Leads Memory --------------------------------------------------------
-function LeadsMemory({ leads, selectedLead, query, filters, filterOptions, activeFilterCount, onQuery, onSetFilter, onSelect, onDelete }) {
-  const isEmpty = leads.length === 0 && !query && !activeFilterCount;
+function LeadsMemory({ leads, inquiries, selectedLead, query, filters, filterOptions, activeFilterCount, onQuery, onSetFilter, onSelect, onDelete, onUpdateInquiry, onDeleteInquiry }) {
+  const [view, setView] = useState('leads');
   const [showFilters, setShowFilters] = useState(false);
+  const [editing, setEditing] = useState(null);
+
+  const displayItems = view === 'inquiries' ? (inquiries || []) : leads;
+  const hasQuery = query && query.trim();
+  const filteredItems = hasQuery
+    ? displayItems.filter((item) => {
+        const searchable = view === 'inquiries'
+          ? (item.full_name + " " + item.destination_country + " " + item.target_model + " " + (item.channel || "")).toLowerCase()
+          : (item.full_name + " " + item.destination_country + " " + item.target_model + " " + item.stage + " " + (item.lead_source || "")).toLowerCase();
+        return searchable.includes(query.trim().toLowerCase());
+      })
+    : displayItems;
+  const isEmpty = displayItems.length === 0;
+
+  function openEdit(item) {
+    if (view === 'inquiries') {
+      setEditing({ type: 'inquiry', data: { ...item } });
+    }
+  }
+
+  async function handleSaveEdit() {
+    if (!editing) return;
+    const { type, data } = editing;
+    if (type === 'inquiry') {
+      await onUpdateInquiry(data.id, {
+        full_name: data.full_name,
+        destination_country: data.destination_country,
+        target_model: data.target_model,
+        event_note: data.event_note,
+        channel: data.channel,
+        status: data.status,
+        vin: data.vin,
+        trade_terms: data.trade_terms,
+      });
+    }
+    setEditing(null);
+  }
+
   return (
     <section className="panel">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><p className="eyebrow">商机记忆库</p><h2 className="section-title">全部客户 ({leads.length})</h2></div>
+        <div>
+          <p className="eyebrow">商机记忆库</p>
+          <h2 className="section-title">
+            {view === 'inquiries' ? "全部询盘" : "全部客户"} ({displayItems.length})
+          </h2>
+        </div>
         <div className="flex items-center gap-2">
           <button className="secondary-button" onClick={() => setShowFilters(!showFilters)}>
-            <Filter size={17} />筛选{activeFilterCount > 0 ? ' (' + activeFilterCount + ')' : ''}
+            <Filter size={17} />筛选{activeFilterCount > 0 ? " (" + activeFilterCount + ")" : ""}
           </button>
           {activeFilterCount > 0 && (
             <button className="secondary-button" onClick={() => onSetFilter(initialFilters)}><RotateCcw size={17} />重置</button>
           )}
         </div>
       </div>
-      {showFilters && (
+
+      {/* View Toggle */}
+      <div className="mt-4 flex gap-1 rounded-2xl bg-slate-100 p-1">
+        {['leads', 'inquiries'].map((v) => (
+          <button
+            key={v}
+            className={clsx(
+              "flex-1 rounded-xl px-4 py-2 text-sm font-medium transition",
+              view === v ? "bg-white text-slate-950 shadow-sm" : "text-slate-500 hover:text-slate-700"
+            )}
+            onClick={() => setView(v)}
+          >
+            {v === 'leads' ? "客户商机" : "询盘记录"}
+          </button>
+        ))}
+      </div>
+
+      {/* Filters (only for leads view) */}
+      {view === 'leads' && showFilters && (
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {['stage', 'country', 'model', 'source'].map((key) => (
             <label key={key} className="block">
-              <span className="text-xs font-semibold text-slate-500">{key === 'stage' ? '阶段' : key === 'country' ? '国家' : key === 'model' ? '车型' : '渠道'}</span>
+              <span className="text-xs font-semibold text-slate-500">{key === 'stage' ? "阶段" : key === 'country' ? "国家" : key === 'model' ? "车型" : "渠道"}</span>
               <select className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm" value={filters[key]} onChange={(e) => onSetFilter({ ...filters, [key]: e.target.value })}>
                 <option value="">全部</option>
                 {((filterOptions[key + 's']) || []).map((v) => <option key={v} value={v}>{v}</option>)}
@@ -730,46 +814,157 @@ function LeadsMemory({ leads, selectedLead, query, filters, filterOptions, activ
           ))}
         </div>
       )}
+
+      {/* Search */}
       <div className="mt-4 flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2">
         <Search size={17} className="text-slate-400" />
-        <input className="w-full bg-transparent text-sm outline-none" placeholder="搜索客户名称、国家、车型..." value={query} onChange={(e) => onQuery(e.target.value)} />
-        {query && <button onClick={() => onQuery('')}><X size={16} className="text-slate-400" /></button>}
+        <input className="w-full bg-transparent text-sm outline-none" placeholder={view === 'inquiries' ? "搜索询盘名称、国家、车型..." : "搜索客户名称、国家、车型..."} value={query} onChange={(e) => onQuery(e.target.value)} />
+        {query && <button onClick={() => onQuery("")}><X size={16} className="text-slate-400" /></button>}
       </div>
+
+      {/* List */}
       <div className="mt-4 space-y-2">
         {isEmpty ? (
           <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
             <UsersRound className="mx-auto text-slate-300" size={40} />
-            <p className="mt-3 text-sm font-medium text-slate-600">暂无客户数据</p>
-            <p className="mt-1 text-xs text-slate-400">点击右上角 "AI 解析询盘" 添加第一个客户</p>
+            <p className="mt-3 text-sm font-medium text-slate-600">{view === 'inquiries' ? "暂无询盘记录" : "暂无客户数据"}</p>
+            <p className="mt-1 text-xs text-slate-400">点击右上角 "添加询盘" 添加第一个客户</p>
           </div>
-        ) : leads.length === 0 ? (
+        ) : filteredItems.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
-            <p className="text-sm text-slate-500">没有匹配的客户</p>
-            <button className="mt-2 text-xs font-semibold text-[#2563EB] hover:underline" onClick={() => { onQuery(''); onSetFilter(initialFilters); }}>清除筛选条件</button>
+            <p className="text-sm text-slate-500">没有匹配的记录</p>
+            <button className="mt-2 text-xs font-semibold text-[#2563EB] hover:underline" onClick={() => { onQuery(""); if (view === 'leads') onSetFilter(initialFilters); }}>清除筛选条件</button>
           </div>
         ) : (
-          leads.map((lead) => (
-            <div key={lead.id} className={clsx('flex items-center gap-3 rounded-2xl border p-3 transition cursor-pointer', selectedLead?.id === lead.id ? 'border-[#2563EB] bg-blue-50/50' : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50')}>
-              <button className="relative grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#0F172A] text-sm font-bold text-white" onClick={() => onSelect(lead)}>
-                {(lead.full_name || '?').slice(0, 1)}
-                <span className="absolute -right-1 -top-1 rounded-full bg-[#0EA5E9] px-1.5 py-0.5 text-[9px] font-bold text-white">{lead.steering || 'LHD'}</span>
+          filteredItems.map((item) => (
+            <div key={item.id} className={clsx("flex items-center gap-3 rounded-2xl border p-3 transition", selectedLead?.id === item.id && view === 'leads' ? "border-[#2563EB] bg-blue-50/50" : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50")}>
+              <button className="relative grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#0F172A] text-sm font-bold text-white" onClick={() => { if (view === 'leads') onSelect(item); }}>
+                {(item.full_name || "?").slice(0, 1)}
+                <span className="absolute -right-1 -top-1 rounded-full bg-[#0EA5E9] px-1.5 py-0.5 text-[9px] font-bold text-white">{item.steering || "LHD"}</span>
               </button>
-              <button className="min-w-0 flex-1 text-left" onClick={() => onSelect(lead)}>
-                <p className="truncate text-sm font-semibold text-slate-950">{lead.target_model} · {lead.destination_country}</p>
-                <p className="truncate text-xs text-slate-500">{lead.full_name} · {lead.whatsapp} · {lead.lead_source}</p>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-slate-950">{item.brand ? item.brand + " " : ""}{item.target_model}</p>
+                <p className="truncate text-xs text-slate-500">{item.destination_country}{item.port ? " · " + item.port : ""}{item.quantity ? " · " + item.quantity + "台" : ""}</p>
+                <p className="truncate text-xs text-slate-500">
+                  {item.full_name} · {item.whatsapp || item.channel} · {item.lead_source || item.channel || ""}
+                </p>
+                {view === 'inquiries' && item.event_note && (
+                  <p className="mt-0.5 truncate text-xs text-slate-400">{item.event_note}</p>
+                )}
+              </div>
+              <span className={clsx("shrink-0 rounded-full px-3 py-1 text-xs font-semibold", view === 'inquiries' ? "bg-slate-100 text-slate-600" : "status-pill")}>{view === 'inquiries' ? (item.status || "待处理") : item.stage}</span>
+              <button className="shrink-0 rounded-xl p-2 text-slate-300 hover:bg-blue-50 hover:text-blue-500 transition" onClick={() => openEdit(item)} title="编辑">
+                <Pencil size={16} />
               </button>
-              <span className="status-pill shrink-0">{lead.stage}</span>
-              <button className="shrink-0 rounded-xl p-2 text-slate-300 hover:bg-red-50 hover:text-red-500 transition" onClick={() => { if (window.confirm('确定删除该客户？')) onDelete(lead.id); }}>
+              <button className="shrink-0 rounded-xl p-2 text-slate-300 hover:bg-red-50 hover:text-red-500 transition" onClick={() => {
+                const label = view === 'inquiries' ? "该询盘" : "该客户";
+                if (window.confirm("确定删除" + label + "？")) {
+                  if (view === 'inquiries') onDeleteInquiry(item.id);
+                  else onDelete(item.id);
+                }
+              }}>
                 <Trash2 size={16} />
               </button>
             </div>
           ))
         )}
       </div>
+
+      {/* Edit Modal */}
+      {editing && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/45 p-4 backdrop-blur-md" onClick={() => setEditing(null)}>
+          <div className="w-full max-w-lg rounded-[1.75rem] bg-white shadow-command" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <h2 className="text-lg font-semibold text-slate-950">
+                编辑{editing.type === 'inquiry' ? "询盘记录" : "客户商机"}
+              </h2>
+              <button className="icon-button" onClick={() => setEditing(null)}><X size={18} /></button>
+            </div>
+            <div className="space-y-4 p-5">
+              <label className="block">
+                <span className="text-xs font-semibold text-slate-500">客户姓名</span>
+                <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-[#2563EB] focus:bg-white"
+                  value={editing.data.full_name || ""}
+                  onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, full_name: e.target.value } }))} />
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <label className="block">
+                  <span className="text-xs font-semibold text-slate-500">目标国家</span>
+                  <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-[#2563EB] focus:bg-white"
+                    value={editing.data.destination_country || ""}
+                    onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, destination_country: e.target.value } }))} />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-semibold text-slate-500">目标车型</span>
+                  <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-[#2563EB] focus:bg-white"
+                    value={editing.data.target_model || ""}
+                    onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, target_model: e.target.value } }))} />
+                </label>
+              </div>
+              <label className="block">
+                <span className="text-xs font-semibold text-slate-500">询盘内容</span>
+                <textarea className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-[#2563EB] focus:bg-white" rows={3}
+                  value={editing.data.event_note || ""}
+                  onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, event_note: e.target.value } }))} />
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <label className="block">
+                  <span className="text-xs font-semibold text-slate-500">渠道</span>
+                  <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-[#2563EB] focus:bg-white"
+                    value={editing.data.channel || ""}
+                    onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, channel: e.target.value } }))} />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-semibold text-slate-500">状态</span>
+                  <select className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
+                    value={editing.data.status || "pending"}
+                    onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, status: e.target.value } }))}>
+                    <option value="pending">待处理</option>
+                    <option value="跟进中">跟进中</option>
+                    <option value="已报价">已报价</option>
+                    <option value="已确认意向">已确认意向</option>
+                    <option value="签订合同中">签订合同中</option>
+                    <option value="已付款">已付款</option>
+                    <option value="已发货">已发货</option>
+                    <option value="失败">失败</option>
+                  </select>
+                </label>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <label className="block">
+                  <span className="text-xs font-semibold text-slate-500">VIN 码</span>
+                  <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-[#2563EB] focus:bg-white"
+                    value={editing.data.vin || ""}
+                    onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, vin: e.target.value } }))} />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-semibold text-slate-500">贸易术语</span>
+                  <select className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
+                    value={editing.data.trade_terms || ""}
+                    onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, trade_terms: e.target.value } }))}>
+                    <option value="">-</option>
+                    <option value="FCA">FCA (货交承运人)</option>
+                    <option value="FOB">FOB (装运港船上交货)</option>
+                    <option value="CFR">CFR (成本加运费)</option>
+                    <option value="CIF">CIF (到岸价)</option>
+                    <option value="EXW">EXW (工厂交货)</option>
+                    <option value="DAP">DAP (目的地交货)</option>
+                  </select>
+                </label>
+              </div>
+              <button
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#2563EB] to-[#0EA5E9] px-5 py-4 text-sm font-semibold text-white shadow-blueglow transition hover:opacity-90"
+                onClick={handleSaveEdit}
+              >
+                保存修改
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
-
 function LeadProfile({ lead }) {
   if (!lead) {
     return (
@@ -894,37 +1089,61 @@ function IntakeModal({ onClose, onAddLead, onAddInquiry }) {
 
   function update(k, v) { setForm((f) => ({ ...f, [k]: v })); }
 
-  async function handleSave() {
-    if (!form.name || !form.country || !form.model) return;
+    async function handleSave() {
+    if (!form.contact_name || !form.country) return;
+    const modelsArr = (form.models || []).filter(Boolean);
+    const modelsStr = modelsArr.join(", ");
+    if (!modelsStr) return;
     setSaving(true);
     const now = new Date().toISOString();
-    // Create lead
     await onAddLead({
-      full_name: form.name,
+      full_name: form.contact_name,
+      company_cn: form.company_cn || "",
+      company_en: form.company_en || "",
+      title: form.title || "",
+      phone: form.phone || "",
+      email: form.email || "",
+      whatsapp: form.whatsapp || "",
+      qualification: form.qualification || "",
       destination_country: form.country,
-      target_model: form.model,
-      lead_source: form.source || '官网',
-      whatsapp: form.whatsapp || '',
-      steering: form.steering || 'LHD',
-      stage: 'AI Intake',
+      port: form.port || "",
+      brand: form.brand || "",
+      target_model: modelsStr,
+      year: form.year || "",
+      power_type: form.power_type || "",
+      steering: form.steering || "LHD",
+      color: form.color || "",
+      vin: form.vin || "",
+      quantity: form.quantity || "",
+      moq: form.moq || "",
+      target_price: form.target_price || "",
+      currency: form.currency || "USD",
+      trade_terms: form.trade_terms || "",
+      delivery_date: form.delivery_date || "",
+      lead_source: form.source || "",
+      competitor: form.competitor || "",
+      stage: "New Lead",
     });
-    // Create inquiry event
-    if (form.request) {
-      const nextDate = new Date();
-      nextDate.setDate(nextDate.getDate() + 2);
-      await onAddInquiry({
-        full_name: form.name,
-        destination_country: form.country,
-        target_model: form.model,
-        event_note: form.request,
-        channel: form.source || '官网',
-        status: 'pending',
-        last_inquiry_at: now,
-        next_follow_up_at: nextDate.toISOString(),
-        follow_ups: [],
-        completed: false,
-      });
-    }
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + 2);
+    await onAddInquiry({
+      full_name: form.contact_name,
+      company_cn: form.company_cn || "",
+      company_en: form.company_en || "",
+      destination_country: form.country,
+      port: form.port || "",
+      target_model: modelsStr,
+      vin: form.vin || "",
+      quantity: form.quantity || "",
+      trade_terms: form.trade_terms || "",
+      event_note: form.request || "",
+      channel: form.source || "",
+      status: "pending",
+      last_inquiry_at: now,
+      next_follow_up_at: nextDate.toISOString(),
+      follow_ups: [],
+      completed: false,
+    });
     setSaving(false);
     onClose();
   }
@@ -933,7 +1152,7 @@ function IntakeModal({ onClose, onAddLead, onAddInquiry }) {
     <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/45 p-4 backdrop-blur-md">
       <section className="max-h-[92vh] w-full max-w-5xl overflow-auto rounded-[1.75rem] bg-white shadow-command">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-          <div><p className="eyebrow">AI 询盘解析引擎</p><h2 className="text-xl font-semibold text-slate-950">新询盘录入</h2></div>
+          <div><p className="eyebrow">添加询盘引擎</p><h2 className="text-xl font-semibold text-slate-950">新询盘录入</h2></div>
           <button className="icon-button" onClick={onClose}><X size={18} /></button>
         </div>
         <div className="grid gap-5 p-5 lg:grid-cols-[0.95fr_1.05fr]">
@@ -942,33 +1161,144 @@ function IntakeModal({ onClose, onAddLead, onAddInquiry }) {
             <pre className="mt-4 overflow-auto rounded-2xl bg-white/8 p-4 text-xs leading-6 text-sky-100">{JSON.stringify(form, null, 2)}</pre>
           </div>
           <div className="space-y-4">
+            {/* Customer Info */}
+            <fieldset className="rounded-2xl border border-slate-200 p-3">
+              <legend className="px-2 text-xs font-semibold text-slate-500">客户信息</legend>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  ["company_cn", "公司名称（中文）"],
+                  ["company_en", "Company (English)"],
+                  ["contact_name", "联系人 *"],
+                  ["title", "职位"],
+                  ["phone", "电话"],
+                  ["email", "邮箱"],
+                  ["whatsapp", "WhatsApp"],
+                  ["qualification", "客户资质"],
+                ].map(([k, label]) => (
+                  <label key={k} className={k === "company_cn" || k === "company_en" || k === "qualification" ? "col-span-2" : ""}>
+                    <span className="text-[11px] font-semibold text-slate-500">{label}</span>
+                    <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={form[k]} onChange={(e) => update(k, e.target.value)} placeholder={k === "qualification" ? "采购记录、进口许可证" : ""} />
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            {/* Demand Details */}
+            <fieldset className="rounded-2xl border border-slate-200 p-3">
+              <legend className="px-2 text-xs font-semibold text-slate-500">需求详情</legend>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  ["brand", "品牌"],
+                  ["year", "年款"],
+                ].map(([k, label]) => (
+                  <label key={k} className="block">
+                    <span className="text-[11px] font-semibold text-slate-500">{label}</span>
+                    <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={form[k]} onChange={(e) => update(k, e.target.value)} />
+                  </label>
+                ))}
+                <label className="col-span-2">
+                  <span className="text-[11px] font-semibold text-slate-500">车型 * (多个用逗号分隔或逐个添加)</span>
+                  {(form.models || [""]).map((m, i) => (
+                    <div key={i} className="flex gap-1 mt-1">
+                      <input className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
+                        value={m}
+                        onChange={(e) => { const arr = [...(form.models || [""])]; arr[i] = e.target.value; setForm({...form, models: arr}); }}
+                        placeholder="如 BYD Qin L" />
+                      {(form.models || [""]).length > 1 && (
+                        <button className="shrink-0 rounded-xl p-2 text-slate-300 hover:bg-red-50 hover:text-red-500" onClick={() => { setForm({...form, models: (form.models || [""]).filter((_, idx) => idx !== i)}); }}><X size={14} /></button>
+                      )}
+                    </div>
+                  ))}
+                  <button className="mt-1 text-xs font-medium text-[#2563EB] hover:underline" onClick={() => { setForm({...form, models: [...(form.models || [""]), ""]}); }}>+ 添加车型</button>
+                </label>
+                <label className="block">
+                  <span className="text-[11px] font-semibold text-slate-500">动力类型</span>
+                  <select className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={form.power_type} onChange={(e) => update("power_type", e.target.value)}>
+                    <option value="">请选择</option>
+                    <option value="燃油">燃油</option>
+                    <option value="纯电">纯电</option>
+                    <option value="混动">混动</option>
+                  </select>
+                </label>
+<label className="block">
+                <span className="text-[11px] font-semibold text-slate-500">方向盘</span>
+                <select className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={form.steering} onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === "LHD" && RHD_COUNTRIES.some(c => form.country.toLowerCase().includes(c.toLowerCase()))) {
+                    if (!window.confirm("该国家通常为右舵市场，确认选择左舵？")) return;
+                  }
+                  update("steering", v);
+                }}>
+                  <option value="LHD">LHD (左舵)</option>
+                  <option value="RHD">RHD (右舵)</option>
+                </select>
+              </label>
+              {[
+                ["color", "颜色"],
+                ["quantity", "意向台数"],
+                ["moq", "MOQ"],
+              ].map(([k, label]) => (
+                <label key={k} className="block">
+                  <span className="text-[11px] font-semibold text-slate-500">{label}</span>
+                  <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" type={k === "quantity" || k === "moq" ? "number" : "text"} value={form[k]} onChange={(e) => update(k, e.target.value)} />
+                </label>
+              ))}
+              <label className="col-span-2">
+                <span className="text-[11px] font-semibold text-slate-500">VIN 码 (车架号，可多个)</span>
+                <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={form.vin} onChange={(e) => update("vin", e.target.value)} placeholder="不限长度，多个用逗号分隔" />
+              </label>
+              <label className="block">
+                <span className="text-[11px] font-semibold text-slate-500">Trade Terms</span>
+                <select className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={form.trade_terms} onChange={(e) => update("trade_terms", e.target.value)}>
+                  <option value="">请选择</option>
+                  <option value="FCA">FCA (货交承运人)</option>
+                  <option value="FOB">FOB (装运港船上交货)</option>
+                  <option value="CFR">CFR (成本加运费)</option>
+                  <option value="CIF">CIF (到岸价)</option>
+                  <option value="EXW">EXW (工厂交货)</option>
+                  <option value="DAP">DAP (目的地交货)</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className="text-[11px] font-semibold text-slate-500">目标单价</span>
+                <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" type="number" value={form.target_price} onChange={(e) => update("target_price", e.target.value)} />
+              </label>
+              <label className="block">
+                <span className="text-[11px] font-semibold text-slate-500">货币</span>
+                <select className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={form.currency} onChange={(e) => update("currency", e.target.value)}>
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="CNY">CNY</option>
+                  <option value="RUB">RUB</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className="text-[11px] font-semibold text-slate-500">交货期</span>
+                <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" type="date" value={form.delivery_date} onChange={(e) => update("delivery_date", e.target.value)} />
+              </label>
+            </div>
+          </fieldset>
+
+          {/* Source & Notes */}
             {[
-              ['name', '客户姓名'],
-              ['country', '目标国家'],
-              ['model', '目标车型'],
-              ['source', '来源渠道'],
-              ['whatsapp', 'WhatsApp'],
-              ['request', '客户需求描述'],
+              ["source", "来源渠道"],
+              ["country", "目标国家 *"],
+              ["port", "目的港"],
+              ["request", "需求描述"],
+              ["competitor", "竞争对手"],
             ].map(([k, label]) => (
               <label key={k} className="block">
                 <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</span>
-                {k === 'request' ? (
+                {k === "request" ? (
                   <textarea className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-[#2563EB] focus:bg-white" rows={3} value={form[k]} onChange={(e) => update(k, e.target.value)} />
                 ) : (
                   <input className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-[#2563EB] focus:bg-white" value={form[k]} onChange={(e) => update(k, e.target.value)} />
                 )}
               </label>
             ))}
-            <label className="block">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">方向盘</span>
-              <select className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm" value={form.steering} onChange={(e) => update('steering', e.target.value)}>
-                <option value="LHD">LHD (左舵)</option>
-                <option value="RHD">RHD (右舵)</option>
-              </select>
-            </label>
-            <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#2563EB] to-[#0EA5E9] px-5 py-4 text-sm font-semibold text-white shadow-blueglow transition hover:opacity-90 disabled:opacity-60" onClick={handleSave} disabled={saving || !form.name || !form.country || !form.model}>
+            <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#2563EB] to-[#0EA5E9] px-5 py-4 text-sm font-semibold text-white shadow-blueglow transition hover:opacity-90 disabled:opacity-60" onClick={handleSave} disabled={saving || !form.contact_name || !form.country || !(form.models || []).filter(Boolean).length}>
               {saving ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
-              保存至 Supabase
+              保存询盘至 Supabase
             </button>
           </div>
         </div>
@@ -980,7 +1310,7 @@ function IntakeModal({ onClose, onAddLead, onAddInquiry }) {
 // ---- Follow-up Modal -----------------------------------------------------
 function FollowUpModal({ dueFollowUps, onUpdateInquiry }) {
   const [forms, setForms] = useState({});
-  const statusOptions = ['跟进中', '已报价', '已确认意向', '失败'];
+  const statusOptions = ['跟进中', '已报价', '已确认意向', '签订合同中', '已付款', '已发货', '失败'];
 
   if (dueFollowUps.length === 0) return null;
 
