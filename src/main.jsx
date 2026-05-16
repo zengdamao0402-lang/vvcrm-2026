@@ -502,16 +502,7 @@ function App() {
           {activePage === 'markets' && (
             <MarketsPage leads={leads} modelStats={modelStats} tradeFlow={tradeFlow} filteredLeads={filteredLeads} />
           )}
-          {activePage === 'intake' && (
-            <div className="px-3 pb-8 pt-4 sm:px-6 lg:px-8">
-              <section className="panel">
-                <p className="eyebrow">AI ????</p>
-                <h2 className="section-title">AI Intake Engine</h2>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">??????AI ????????????????????????</p>
-                <button className="primary-button mt-5" onClick={() => setIsModalOpen(true)}><Sparkles size={18} />?? AI ????</button>
-              </section>
-            </div>
-          )}
+{activePage === 'intake' && null}
 {activePage === 'finance' && null}
         </main>
       </div>
@@ -747,32 +738,47 @@ function MarketsPage({ leads, modelStats, tradeFlow, filteredLeads }) {
 
 
 // ---- Dashboard -----------------------------------------------------------
-function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, activeFilterCount, inquiries, query, selectedLead, modelStats, tradeFlow, funnel, onQuery, onSetFilter, onSelectLead, onUpdateInquiry, onDeleteLead, onDeleteInquiry }) {
+function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, activeFilterCount, inquiries, query, selectedLead, modelStats, tradeFlow, funnel, onQuery, onSetFilter, onSelectLead, onUpdateLead, onUpdateInquiry, onDeleteLead, onDeleteInquiry }) {
   return (
-    <div className="grid gap-5 px-3 pb-8 pt-4 sm:px-6 lg:grid-cols-[1.45fr_0.85fr] lg:px-8">
-      <section className="space-y-5">
-        <MarketInsight modelStats={modelStats} />
-        <div className="grid gap-5 xl:grid-cols-[1fr_0.9fr]">
-          <ConversionFunnel funnel={funnel} />
-          <FollowUpReminder dueFollowUps={dueFollowUps} inquiries={inquiries} onUpdateInquiry={onUpdateInquiry} />
+    <div className="grid gap-4 px-2 pb-8 pt-3 sm:px-4 sm:gap-5 sm:pt-4 lg:grid-cols-[1.45fr_0.85fr] lg:px-8">
+      <section className="space-y-4 sm:space-y-5">
+        <div className="space-y-4 lg:hidden">
+          <StrategicSignal leads={filteredLeads} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <DataHealth leads={filteredLeads} inquiries={inquiries} />
+            <FollowUpReminder dueFollowUps={dueFollowUps} inquiries={inquiries} onUpdateInquiry={onUpdateInquiry} />
+          </div>
         </div>
+        <MarketInsight modelStats={modelStats} />
+        <div className="hidden lg:block">
+          <div className="grid gap-5 xl:grid-cols-[1fr_0.9fr]">
+            <ConversionFunnel funnel={funnel} />
+            <FollowUpReminder dueFollowUps={dueFollowUps} inquiries={inquiries} onUpdateInquiry={onUpdateInquiry} />
+          </div>
+        </div>
+        <div className="lg:hidden"><ConversionFunnel funnel={funnel} /></div>
         <LeadsMemory
-            leads={filteredLeads}
-            inquiries={inquiries}
-            selectedLead={selectedLead}
-            query={query}
-            filters={filters}
-            filterOptions={filterOptions}
-            activeFilterCount={activeFilterCount}
-            onQuery={onQuery}
-            onSetFilter={onSetFilter}
-            onSelect={onSelectLead}
-            onDelete={onDeleteLead}
-            onUpdateInquiry={onUpdateInquiry}
-            onDeleteInquiry={onDeleteInquiry}
-          />
+          leads={filteredLeads}
+          inquiries={inquiries}
+          selectedLead={selectedLead}
+          query={query}
+          filters={filters}
+          filterOptions={filterOptions}
+          activeFilterCount={activeFilterCount}
+          onQuery={onQuery}
+          onSetFilter={onSetFilter}
+          onSelect={onSelectLead}
+          onDelete={onDeleteLead}
+          onUpdateLead={onUpdateLead}
+          onUpdateInquiry={onUpdateInquiry}
+          onDeleteInquiry={onDeleteInquiry}
+        />
+        <div className="space-y-4 lg:hidden">
+          <TradeFlow tradeFlow={tradeFlow} />
+          {selectedLead && <LeadProfile lead={selectedLead} />}
+        </div>
       </section>
-      <aside className="space-y-5">
+      <aside className="hidden space-y-5 lg:block">
         <StrategicSignal leads={filteredLeads} />
         <TradeFlow tradeFlow={tradeFlow} />
         <LeadProfile lead={selectedLead} />
@@ -781,7 +787,6 @@ function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, ac
     </div>
   );
 }
-
 function MarketInsight({ modelStats }) {
   const isEmpty = !modelStats.length;
   return (
