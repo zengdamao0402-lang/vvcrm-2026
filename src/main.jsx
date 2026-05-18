@@ -483,6 +483,7 @@ function App() {
               query={query}
               selectedLead={selectedLead}
               modelStats={modelStats}
+              countryDistribution={countryDistribution}
               tradeFlow={tradeFlow}
               funnel={funnel}
               leads={leads}
