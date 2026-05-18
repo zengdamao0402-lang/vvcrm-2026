@@ -7,7 +7,7 @@ export default {
         command: '0 18px 70px rgb(15 23 42 / 0.09)',
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Noto Sans SC', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
     },
   },

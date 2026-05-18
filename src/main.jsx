@@ -859,19 +859,14 @@ function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, ac
               </div>
             ) : (
               <>
-                <div className="h-64 overflow-x-auto">
+                <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={countryDistribution} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                      <XAxis type="number" />
-                      <YAxis type="category" dataKey="country" width={80} tick={{ fontSize: 12 }} />
+                    <PieChart>
+                      <Pie data={countryDistribution} dataKey="count" nameKey="country" innerRadius={62} outerRadius={92} paddingAngle={3}>
+                        {countryDistribution.map((entry) => <Cell key={entry.country} fill={entry.color} />)}
+                      </Pie>
                       <Tooltip formatter={(v) => [v, '条']} />
-                      <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-                        {countryDistribution.map((entry) => (
-                          <Cell key={entry.country} fill={entry.color} />
-                        ))}
-                      </Bar>
-                    </BarChart>
+                    </PieChart>
                   </ResponsiveContainer>
                 </div>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -1130,91 +1125,178 @@ function LeadsMemory({ leads, inquiries, selectedLead, query, filters, filterOpt
       {/* Edit Modal */}
       {editing && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/45 p-4 backdrop-blur-md" onClick={() => setEditing(null)}>
-          <div className="w-full max-w-lg rounded-[1.75rem] bg-white shadow-command" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-5xl max-h-[92vh] overflow-auto rounded-[1.75rem] bg-white shadow-command" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-              <h2 className="text-lg font-semibold text-slate-950">
-                �༭{editing.type === 'inquiry' ? "ѯ�̼�¼" : "�ͻ��̻�"}
-              </h2>
+              <div><p className="text-xs font-semibold text-slate-400">Edit Inquiry</p><h2 className="text-xl font-semibold text-slate-950">????</h2></div>
               <button className="icon-button" onClick={() => setEditing(null)}><X size={18} /></button>
             </div>
-            <div className="space-y-4 p-5">
-              <label className="block">
-                <span className="text-xs font-semibold text-slate-500">�ͻ�����</span>
-                <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-[#2563EB] focus:bg-white"
-                  value={editing.data.full_name || ""}
-                  onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, full_name: e.target.value } }))} />
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <label className="block">
-                  <span className="text-xs font-semibold text-slate-500">Ŀ�����</span>
-                  <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-[#2563EB] focus:bg-white"
-                    value={editing.data.destination_country || ""}
-                    onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, destination_country: e.target.value } }))} />
-                </label>
-                <label className="block">
-                  <span className="text-xs font-semibold text-slate-500">Ŀ�공��</span>
-                  <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-[#2563EB] focus:bg-white"
-                    value={editing.data.target_model || ""}
-                    onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, target_model: e.target.value } }))} />
-                </label>
+            <div className="grid gap-5 p-5 lg:grid-cols-[0.95fr_1.05fr]">
+              <div className="rounded-3xl bg-[#0F172A] p-5 text-white">
+                <p className="text-sm font-semibold">?? JSON ??</p>
+                <pre className="mt-4 overflow-auto rounded-2xl bg-white/8 p-4 text-xs leading-6 text-sky-100">{JSON.stringify(editing.data, null, 2)}</pre>
               </div>
-              <label className="block">
-                <span className="text-xs font-semibold text-slate-500">ѯ������</span>
-                <textarea className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-[#2563EB] focus:bg-white" rows={3}
-                  value={editing.data.event_note || ""}
-                  onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, event_note: e.target.value } }))} />
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <label className="block">
-                  <span className="text-xs font-semibold text-slate-500">����</span>
-                  <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-[#2563EB] focus:bg-white"
-                    value={editing.data.channel || ""}
-                    onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, channel: e.target.value } }))} />
-                </label>
-                <label className="block">
-                  <span className="text-xs font-semibold text-slate-500">״̬</span>
-                  <select className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
-                    value={editing.data.status || "pending"}
-                    onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, status: e.target.value } }))}>
-                    <option value="pending">������</option>
-                    <option value="������">������</option>
-                    <option value="�ѱ���">�ѱ���</option>
-                    <option value="��ȷ������">��ȷ������</option>
-                    <option value="ǩ����ͬ��">ǩ����ͬ��</option>
-                    <option value="�Ѹ���">�Ѹ���</option>
-                    <option value="�ѷ���">�ѷ���</option>
-                    <option value="ʧ��">ʧ��</option>
-                  </select>
-                </label>
+              <div className="space-y-4">
+                {/* Customer Info */}
+                <fieldset className="rounded-2xl border border-slate-200 p-3">
+                  <legend className="px-2 text-xs font-semibold text-slate-500">????</legend>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      ["full_name", "??? *"],
+                      ["company_cn", "????????"],
+                      ["company_en", "Company (English)"],
+                      ["title", "??"],
+                      ["phone", "??"],
+                      ["email", "??"],
+                      ["whatsapp", "WhatsApp"],
+                      ["qualification", "????"],
+                    ].map(([k, label]) => (
+                      <label key={k} className={k === "company_cn" || k === "company_en" || k === "qualification" ? "col-span-2" : ""}>
+                        <span className="text-[11px] font-semibold text-slate-500">{label}</span>
+                        <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={editing.data[k] || ""} onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, [k]: e.target.value } }))} placeholder={k === "qualification" ? "????/?????" : ""} />
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+
+                {/* Demand Details */}
+                <fieldset className="rounded-2xl border border-slate-200 p-3">
+                  <legend className="px-2 text-xs font-semibold text-slate-500">????</legend>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      ["brand", "??"],
+                      ["year", "??"],
+                    ].map(([k, label]) => (
+                      <label key={k} className="block">
+                        <span className="text-[11px] font-semibold text-slate-500">{label}</span>
+                        <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={editing.data[k] || ""} onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, [k]: e.target.value } }))} />
+                      </label>
+                    ))}
+                    <label className="col-span-2">
+                      <span className="text-[11px] font-semibold text-slate-500">?? * (???????)</span>
+                      <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={editing.data.target_model || ""} onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, target_model: e.target.value } }))} placeholder="? BYD Qin L, Toyota Corolla" />
+                    </label>
+                    <label className="block">
+                      <span className="text-[11px] font-semibold text-slate-500">????</span>
+                      <select className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={editing.data.power_type || ""} onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, power_type: e.target.value } }))}>
+                        <option value="">???</option>
+                        <option value="??">??</option>
+                        <option value="??">??</option>
+                        <option value="??">??</option>
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-[11px] font-semibold text-slate-500">???</span>
+                      <select className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={editing.data.steering || "LHD"} onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, steering: e.target.value } }))}>
+                        <option value="LHD">LHD (??)</option>
+                        <option value="RHD">RHD (??)</option>
+                      </select>
+                    </label>
+                    {[
+                      ["color", "??"],
+                      ["quantity", "????"],
+                      ["moq", "MOQ"],
+                    ].map(([k, label]) => (
+                      <label key={k} className="block">
+                        <span className="text-[11px] font-semibold text-slate-500">{label}</span>
+                        <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" type={k === "quantity" || k === "moq" ? "number" : "text"} value={editing.data[k] || ""} onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, [k]: e.target.value } }))} />
+                      </label>
+                    ))}
+                    <label className="col-span-2">
+                      <span className="text-[11px] font-semibold text-slate-500">VIN ? (???????)</span>
+                      <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={editing.data.vin || ""} onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, vin: e.target.value } }))} placeholder="??VIN?????" />
+                    </label>
+                    <label className="block">
+                      <span className="text-[11px] font-semibold text-slate-500">Trade Terms</span>
+                      <select className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={editing.data.trade_terms || ""} onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, trade_terms: e.target.value } }))}>
+                        <option value="">???</option>
+                        <option value="FCA">FCA (?????)</option>
+                        <option value="FOB">FOB (???????)</option>
+                        <option value="CFR">CFR (?????)</option>
+                        <option value="CIF">CIF (???)</option>
+                        <option value="EXW">EXW (????)</option>
+                        <option value="DAP">DAP (?????)</option>
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-[11px] font-semibold text-slate-500">????</span>
+                      <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" type="number" value={editing.data.target_price || ""} onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, target_price: e.target.value } }))} />
+                    </label>
+                    <label className="block">
+                      <span className="text-[11px] font-semibold text-slate-500">??</span>
+                      <select className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={editing.data.currency || "USD"} onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, currency: e.target.value } }))}>
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="CNY">CNY</option>
+                        <option value="RUB">RUB</option>
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-[11px] font-semibold text-slate-500">???</span>
+                      <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" type="date" value={editing.data.delivery_date || ""} onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, delivery_date: e.target.value } }))} />
+                    </label>
+                    {editing.type === 'lead' && (
+                      <label className="block">
+                        <span className="text-[11px] font-semibold text-slate-500">??</span>
+                        <select className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={editing.data.stage || ""} onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, stage: e.target.value } }))}>
+                          {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                      </label>
+                    )}
+                  </div>
+                </fieldset>
+
+                {/* Source & Notes */}
+                <fieldset className="rounded-2xl border border-slate-200 p-3">
+                  <legend className="px-2 text-xs font-semibold text-slate-500">?????</legend>
+                  <div className="space-y-3">
+                    {[
+                      ["lead_source", "????"],
+                      ["destination_country", "???? *"],
+                      [editing.type === 'lead' ? "destination_port" : "port", "???"],
+                      ["competitor", "????"],
+                    ].map(([k, label]) => (
+                      <label key={k} className="block">
+                        <span className="text-[11px] font-semibold text-slate-500">{label}</span>
+                        <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={editing.data[k] || ""} onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, [k]: e.target.value } }))} />
+                      </label>
+                    ))}
+                    {editing.type === 'inquiry' && (
+                      <>
+                        <label className="block">
+                          <span className="text-[11px] font-semibold text-slate-500">????</span>
+                          <textarea className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" rows={3} value={editing.data.event_note || ""} onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, event_note: e.target.value } }))} />
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <label className="block">
+                            <span className="text-[11px] font-semibold text-slate-500">??</span>
+                            <select className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={editing.data.channel || ""} onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, channel: e.target.value } }))}>
+                              <option value="">-</option>
+                              {CHANNELS.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                          </label>
+                          <label className="block">
+                            <span className="text-[11px] font-semibold text-slate-500">??</span>
+                            <select className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" value={editing.data.status || "pending"} onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, status: e.target.value } }))}>
+                              <option value="pending">???</option>
+                              <option value="???">???</option>
+                              <option value="???">???</option>
+                              <option value="????">????</option>
+                              <option value="????">????</option>
+                              <option value="???">???</option>
+                              <option value="???">???</option>
+                              <option value="??">??</option>
+                            </select>
+                          </label>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </fieldset>
+
+                <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#2563EB] to-[#0EA5E9] px-5 py-4 text-sm font-semibold text-white shadow-blueglow transition hover:opacity-90" onClick={handleSaveEdit}>
+                  ????
+                </button>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <label className="block">
-                  <span className="text-xs font-semibold text-slate-500">VIN ��</span>
-                  <input className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-[#2563EB] focus:bg-white"
-                    value={editing.data.vin || ""}
-                    onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, vin: e.target.value } }))} />
-                </label>
-                <label className="block">
-                  <span className="text-xs font-semibold text-slate-500">ó������</span>
-                  <select className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
-                    value={editing.data.trade_terms || ""}
-                    onChange={(e) => setEditing((prev) => ({ ...prev, data: { ...prev.data, trade_terms: e.target.value } }))}>
-                    <option value="">-</option>
-                    <option value="FCA">FCA (����������)</option>
-                    <option value="FOB">FOB (װ�˸۴��Ͻ���)</option>
-                    <option value="CFR">CFR (�ɱ����˷�)</option>
-                    <option value="CIF">CIF (������)</option>
-                    <option value="EXW">EXW (��������)</option>
-                    <option value="DAP">DAP (Ŀ�ĵؽ���)</option>
-                  </select>
-                </label>
-              </div>
-              <button
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#2563EB] to-[#0EA5E9] px-5 py-4 text-sm font-semibold text-white shadow-blueglow transition hover:opacity-90"
-                onClick={handleSaveEdit}
-              >
-                �����޸�
-              </button>
             </div>
           </div>
         </div>
@@ -1222,6 +1304,7 @@ function LeadsMemory({ leads, inquiries, selectedLead, query, filters, filterOpt
     </section>
   );
 }
+
 function LeadProfile({ lead }) {
   if (!lead) {
     return (
