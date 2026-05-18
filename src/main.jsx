@@ -524,10 +524,8 @@ function App() {
 function Sidebar({ activePage, dueCount, onPageChange }) {
   const nav = [
     [LayoutDashboard, 'Dashboard', '首页看板', 'dashboard'],
-    [Bot, 'AI Intake', 'AI 询盘解析', 'intake'],
     [UsersRound, 'Leads', '商机记忆库', 'leads'],
     [Globe2, 'Markets', '去向国家', 'markets'],
-    [CircleDollarSign, 'Finance', '金融与报价', 'finance'],
     [FileText, 'Contract', '合同生成', 'contracts'],
   ];
   return (
@@ -683,19 +681,19 @@ function MarketsPage({ leads, modelStats, tradeFlow, filteredLeads }) {
         <MarketInsight modelStats={modelStats} />
         <div className="panel">
           <div>
-            <p className="eyebrow">????</p>
-            <h2 className="section-title">?????? Top 15</h2>
+            <p className="eyebrow">国家分析</p>
+            <h2 className="section-title">热门去向国家 Top 15</h2>
           </div>
           <div className="mt-4 space-y-2">
             {countries.length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-400">????</p>
+              <p className="py-8 text-center text-sm text-slate-400">暂无数据</p>
             ) : (
               countries.map(([country, count], i) => (
                 <div key={country} className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-2.5">
                   <span className="w-6 text-xs font-bold text-slate-400">#{i + 1}</span>
                   <Globe2 size={16} className="text-[#2563EB]" />
                   <span className="flex-1 text-sm font-medium text-slate-800">{country}</span>
-                  <span className="text-xs font-semibold text-[#2563EB]">{count} ???</span>
+                  <span className="text-xs font-semibold text-[#2563EB]">{count} 条商机</span>
                   <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200">
                     <div className="h-full rounded-full bg-[#2563EB]" style={{ width: ((count / countries[0][1]) * 100) + '%' }} />
                   </div>
@@ -706,19 +704,19 @@ function MarketsPage({ leads, modelStats, tradeFlow, filteredLeads }) {
         </div>
         <div className="panel">
           <div>
-            <p className="eyebrow">??x????</p>
-            <h2 className="section-title">????????</h2>
+            <p className="eyebrow">车型×国家矩阵</p>
+            <h2 className="section-title">热门市场车型分布</h2>
           </div>
           <div className="mt-4 space-y-3">
             {countryModels.length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-400">????</p>
+              <p className="py-8 text-center text-sm text-slate-400">暂无数据</p>
             ) : (
               countryModels.map(([country, models]) => (
                 <div key={country} className="rounded-xl border border-slate-100 p-3">
                   <p className="text-sm font-semibold text-slate-800">{country}</p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {Object.entries(models).sort((a,b) => b[1]-a[1]).slice(0, 5).map(([model, cnt]) => (
-                      <span key={model} className="rounded-lg bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{model} x{cnt}</span>
+                      <span key={model} className="rounded-lg bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{model} ×{cnt}</span>
                     ))}
                   </div>
                 </div>
@@ -734,14 +732,10 @@ function MarketsPage({ leads, modelStats, tradeFlow, filteredLeads }) {
     </div>
   );
 }
-
-
-
-// ---- Dashboard -----------------------------------------------------------
 function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, activeFilterCount, inquiries, query, selectedLead, modelStats, tradeFlow, funnel, onQuery, onSetFilter, onSelectLead, onUpdateLead, onUpdateInquiry, onDeleteLead, onDeleteInquiry }) {
   return (
     <div className="grid gap-4 px-2 pb-8 pt-3 sm:px-4 sm:gap-5 sm:pt-4 lg:grid-cols-[1.45fr_0.85fr] lg:px-8">
-      <section className="space-y-4 sm:space-y-5">
+      <section className="space-y-4 sm:space-y-5 min-w-0">
         <div className="space-y-4 lg:hidden">
           <StrategicSignal leads={filteredLeads} />
           <div className="grid gap-4 sm:grid-cols-2">
@@ -749,7 +743,9 @@ function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, ac
             <FollowUpReminder dueFollowUps={dueFollowUps} inquiries={inquiries} onUpdateInquiry={onUpdateInquiry} />
           </div>
         </div>
-        <MarketInsight modelStats={modelStats} />
+        <div className="overflow-x-auto">
+          <MarketInsight modelStats={modelStats} />
+        </div>
         <div className="hidden lg:block">
           <div className="grid gap-5 xl:grid-cols-[1fr_0.9fr]">
             <ConversionFunnel funnel={funnel} />
@@ -786,8 +782,7 @@ function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, ac
       </aside>
     </div>
   );
-}
-function MarketInsight({ modelStats }) {
+}function MarketInsight({ modelStats }) {
   const isEmpty = !modelStats.length;
   return (
     <section className="panel">
