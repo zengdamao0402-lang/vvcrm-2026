@@ -748,7 +748,7 @@ function MarketsPage({ leads, modelStats, countryDistribution, tradeFlow, filter
     </div>
   );
 }
-function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, activeFilterCount, inquiries, query, selectedLead, modelStats, tradeFlow, funnel, onQuery, onSetFilter, onSelectLead, onUpdateLead, onUpdateInquiry, onDeleteLead, onDeleteInquiry }) {
+function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, activeFilterCount, inquiries, query, selectedLead, modelStats, countryDistribution, tradeFlow, funnel, onQuery, onSetFilter, onSelectLead, onUpdateLead, onUpdateInquiry, onDeleteLead, onDeleteInquiry }) {
   return (
     <div className="grid gap-4 px-2 pb-8 pt-3 sm:px-4 sm:gap-5 sm:pt-4 lg:grid-cols-[1.45fr_0.85fr] lg:px-8">
       <section className="space-y-4 sm:space-y-5 min-w-0">
