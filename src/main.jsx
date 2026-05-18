@@ -824,7 +824,7 @@ function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, ac
                     <Pie data={modelStats} dataKey="value" innerRadius={62} outerRadius={92} paddingAngle={3}>
                       {modelStats.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
                     </Pie>
-                    <Tooltip formatter={(v) => [v, '条']} />
+                    <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -840,36 +840,6 @@ function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, ac
             </div>
           
             <div className="rounded-[1.5rem] border border-slate-100 bg-white p-4">
-              <p className="text-sm font-semibold text-slate-950">??????</p>
-              {(!countryDistribution || countryDistribution.length === 0) ? (
-                <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
-                  <p className="text-sm text-slate-500">????</p>
-                </div>
-              ) : (
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={countryDistribution} dataKey="count" nameKey="country" innerRadius={62} outerRadius={92} paddingAngle={3}>
-                        {countryDistribution.map((entry) => <Cell key={entry.country} fill={entry.color} />)}
-                      </Pie>
-                      <Tooltip formatter={(v) => [v, '?']} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-              {countryDistribution && countryDistribution.length > 0 && (
-                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {countryDistribution.map((item) => (
-                    <div key={item.country} className="flex items-center gap-2 text-xs text-slate-600">
-                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                      <span className="truncate">{item.country}</span>
-                      <span className="font-semibold text-slate-800">{item.count}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="rounded-[1.5rem] border border-slate-100 bg-white p-4">
               <p className="text-sm font-semibold text-slate-950">去向国家分布</p>
               {(!countryDistribution || countryDistribution.length === 0) ? (
                 <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
@@ -882,7 +852,7 @@ function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, ac
                       <Pie data={countryDistribution} dataKey="count" nameKey="country" innerRadius={62} outerRadius={92} paddingAngle={3}>
                         {countryDistribution.map((entry) => <Cell key={entry.country} fill={entry.color} />)}
                       </Pie>
-                      <Tooltip formatter={(v) => [v, '条']} />
+                      <Tooltip />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
