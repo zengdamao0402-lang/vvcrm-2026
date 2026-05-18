@@ -694,7 +694,7 @@ function MarketsPage({ leads, modelStats, countryDistribution, tradeFlow, filter
   return (
     <div className="grid gap-5 px-3 pb-8 pt-4 sm:px-6 lg:grid-cols-[1.2fr_0.8fr] lg:px-8">
       <section className="space-y-5">
-        <MarketInsight modelStats={modelStats} />
+        <MarketInsight modelStats={modelStats} countryDistribution={countryDistribution} />
         <div className="panel">
           <div>
             <p className="eyebrow">国家分析</p>
@@ -761,7 +761,7 @@ function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, ac
           </div>
         </div>
         <div className="overflow-x-auto">
-          <MarketInsight modelStats={modelStats} />
+          <MarketInsight modelStats={modelStats} countryDistribution={countryDistribution} />
         </div>
         <div className="hidden lg:block">
           <div className="grid gap-5 xl:grid-cols-[1fr_0.9fr]">
@@ -800,7 +800,7 @@ function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, ac
       </aside>
     </div>
   );
-}function MarketInsight({ modelStats }) {
+}function MarketInsight({ modelStats, countryDistribution }) {
   const isEmpty = !modelStats.length;
   return (
     <section className="panel">
@@ -838,7 +838,67 @@ function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, ac
                 ))}
               </div>
             </div>
-          </div>
+          
+            <div className="rounded-[1.5rem] border border-slate-100 bg-white p-4">
+              <p className="text-sm font-semibold text-slate-950">??????</p>
+              {(!countryDistribution || countryDistribution.length === 0) ? (
+                <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
+                  <p className="text-sm text-slate-500">????</p>
+                </div>
+              ) : (
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={countryDistribution} dataKey="count" nameKey="country" innerRadius={62} outerRadius={92} paddingAngle={3}>
+                        {countryDistribution.map((entry) => <Cell key={entry.country} fill={entry.color} />)}
+                      </Pie>
+                      <Tooltip formatter={(v) => [v, '?']} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+              {countryDistribution && countryDistribution.length > 0 && (
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {countryDistribution.map((item) => (
+                    <div key={item.country} className="flex items-center gap-2 text-xs text-slate-600">
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                      <span className="truncate">{item.country}</span>
+                      <span className="font-semibold text-slate-800">{item.count}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="rounded-[1.5rem] border border-slate-100 bg-white p-4">
+              <p className="text-sm font-semibold text-slate-950">去向国家分布</p>
+              {(!countryDistribution || countryDistribution.length === 0) ? (
+                <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
+                  <p className="text-sm text-slate-500">暂无数据</p>
+                </div>
+              ) : (
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={countryDistribution} dataKey="count" nameKey="country" innerRadius={62} outerRadius={92} paddingAngle={3}>
+                        {countryDistribution.map((entry) => <Cell key={entry.country} fill={entry.color} />)}
+                      </Pie>
+                      <Tooltip formatter={(v) => [v, '条']} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+              {countryDistribution && countryDistribution.length > 0 && (
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {countryDistribution.map((item) => (
+                    <div key={item.country} className="flex items-center gap-2 text-xs text-slate-600">
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                      <span className="truncate">{item.country}</span>
+                      <span className="font-semibold text-slate-800">{item.count}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div></div>
         </>
       )}
     </section>
