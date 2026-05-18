@@ -740,7 +740,8 @@ function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, ac
           <StrategicSignal leads={filteredLeads} />
           <div className="grid gap-4 sm:grid-cols-2">
             <DataHealth leads={filteredLeads} inquiries={inquiries} />
-            <FollowUpReminder dueFollowUps={dueFollowUps} inquiries={inquiries} onUpdateInquiry={onUpdateInquiry} />
+            <FollowUpReminder dueFollowUps={dueFollowUps} inquiries={inquiries} onUpdateLead={onUpdateLead}
+              onUpdateInquiry={onUpdateInquiry} />
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -749,7 +750,8 @@ function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, ac
         <div className="hidden lg:block">
           <div className="grid gap-5 xl:grid-cols-[1fr_0.9fr]">
             <ConversionFunnel funnel={funnel} />
-            <FollowUpReminder dueFollowUps={dueFollowUps} inquiries={inquiries} onUpdateInquiry={onUpdateInquiry} />
+            <FollowUpReminder dueFollowUps={dueFollowUps} inquiries={inquiries} onUpdateLead={onUpdateLead}
+              onUpdateInquiry={onUpdateInquiry} />
           </div>
         </div>
         <div className="lg:hidden"><ConversionFunnel funnel={funnel} /></div>
@@ -766,7 +768,7 @@ function DashboardPage({ dueFollowUps, filteredLeads, filters, filterOptions, ac
           onSelect={onSelectLead}
           onDelete={onDeleteLead}
           onUpdateLead={onUpdateLead}
-          onUpdateInquiry={onUpdateInquiry}
+              onUpdateInquiry={onUpdateInquiry}
           onDeleteInquiry={onDeleteInquiry}
         />
         <div className="space-y-4 lg:hidden">
@@ -900,7 +902,7 @@ function FollowUpReminder({ dueFollowUps, onUpdateInquiry }) {
 }
 
 // ---- Leads Memory --------------------------------------------------------
-function LeadsMemory({ leads, inquiries, selectedLead, query, filters, filterOptions, activeFilterCount, onQuery, onSetFilter, onSelect, onDelete, onUpdateInquiry, onDeleteInquiry }) {
+function LeadsMemory({ leads, inquiries, selectedLead, query, filters, filterOptions, activeFilterCount, onQuery, onSetFilter, onSelect, onDelete, onUpdateLead, onUpdateInquiry, onDeleteInquiry }) {
   const [view, setView] = useState('leads');
   const [showFilters, setShowFilters] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -920,6 +922,8 @@ function LeadsMemory({ leads, inquiries, selectedLead, query, filters, filterOpt
   function openEdit(item) {
     if (view === 'inquiries') {
       setEditing({ type: 'inquiry', data: { ...item } });
+    } else {
+      setEditing({ type: 'lead', data: { ...item } });
     }
   }
 
@@ -936,6 +940,20 @@ function LeadsMemory({ leads, inquiries, selectedLead, query, filters, filterOpt
         status: data.status,
         vin: data.vin,
         trade_terms: data.trade_terms,
+      });
+    } else if (type === 'lead') {
+      await onUpdateLead(data.id, {
+        full_name: data.full_name,
+        destination_country: data.destination_country,
+        target_model: data.target_model,
+        stage: data.stage,
+        lead_source: data.lead_source,
+        whatsapp: data.whatsapp,
+        steering: data.steering,
+        quantity: data.quantity,
+        port: data.port,
+        brand: data.brand,
+        target_price: data.target_price,
       });
     }
     setEditing(null);
@@ -1027,7 +1045,7 @@ function LeadsMemory({ leads, inquiries, selectedLead, query, filters, filterOpt
                 {view === 'inquiries' && item.event_note && (
                   <p className="mt-0.5 truncate text-xs text-slate-400">{item.event_note}</p>
                 )}
-              </div>
+                </div>
               <span className={clsx("shrink-0 rounded-full px-3 py-1 text-xs font-semibold", view === 'inquiries' ? "bg-slate-100 text-slate-600" : "status-pill")}>{view === 'inquiries' ? (item.status || "待处理") : item.stage}</span>
               <button className="shrink-0 rounded-xl p-2 text-slate-300 hover:bg-blue-50 hover:text-blue-500 transition" onClick={() => openEdit(item)} title="编辑">
                 <Pencil size={16} />
