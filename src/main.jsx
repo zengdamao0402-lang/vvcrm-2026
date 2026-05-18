@@ -977,9 +977,11 @@ function LeadsMemory({ leads, inquiries, selectedLead, query, filters, filterOpt
     : displayItems;
   const isEmpty = displayItems.length === 0;
 
-  function openEdit(item) {
+  async function openEdit(item) {
     if (view === 'inquiries') {
-      setEditing({ type: 'inquiry', data: { ...item } });
+      const matchingLead = leads.find(l => l.full_name === item.full_name && l.destination_country === item.destination_country);
+      const mergedData = matchingLead ? { ...matchingLead, ...item } : { ...item };
+      setEditing({ type: 'inquiry', data: mergedData });
     } else {
       setEditing({ type: 'lead', data: { ...item } });
     }
@@ -991,27 +993,77 @@ function LeadsMemory({ leads, inquiries, selectedLead, query, filters, filterOpt
     if (type === 'inquiry') {
       await onUpdateInquiry(data.id, {
         full_name: data.full_name,
+        company_cn: data.company_cn || '',
+        company_en: data.company_en || '',
         destination_country: data.destination_country,
+        port: data.port || data.destination_port || '',
         target_model: data.target_model,
-        event_note: data.event_note,
-        channel: data.channel,
-        status: data.status,
-        vin: data.vin,
-        trade_terms: data.trade_terms,
+        vin: data.vin || '',
+        quantity: data.quantity || '',
+        trade_terms: data.trade_terms || '',
+        event_note: data.event_note || '',
+        channel: data.channel || data.lead_source || '',
+        status: data.status || 'pending',
       });
+      const matchingLead = leads.find(l => l.full_name === data.full_name && l.destination_country === data.destination_country);
+      if (matchingLead) {
+        await onUpdateLead(matchingLead.id, {
+          full_name: data.full_name,
+          company_cn: data.company_cn || '',
+          company_en: data.company_en || '',
+          title: data.title || '',
+          phone: data.phone || '',
+          email: data.email || '',
+          whatsapp: data.whatsapp || '',
+          qualification: data.qualification || '',
+          destination_country: data.destination_country,
+          destination_port: data.destination_port || data.port || '',
+          brand: data.brand || '',
+          target_model: data.target_model,
+          year: data.year || '',
+          power_type: data.power_type || '',
+          steering: data.steering || 'LHD',
+          color: data.color || '',
+          vin: data.vin || '',
+          quantity: data.quantity || '',
+          moq: data.moq || '',
+          target_price: data.target_price || '',
+          currency: data.currency || 'USD',
+          trade_terms: data.trade_terms || '',
+          delivery_date: data.delivery_date || '',
+          lead_source: data.lead_source || data.channel || '',
+          competitor: data.competitor || '',
+          stage: data.stage || '',
+        });
+      }
     } else if (type === 'lead') {
       await onUpdateLead(data.id, {
         full_name: data.full_name,
+        company_cn: data.company_cn || '',
+        company_en: data.company_en || '',
+        title: data.title || '',
+        phone: data.phone || '',
+        email: data.email || '',
+        whatsapp: data.whatsapp || '',
+        qualification: data.qualification || '',
         destination_country: data.destination_country,
+        destination_port: data.destination_port || '',
+        brand: data.brand || '',
         target_model: data.target_model,
-        stage: data.stage,
-        lead_source: data.lead_source,
-        whatsapp: data.whatsapp,
-        steering: data.steering,
-        quantity: data.quantity,
-        port: data.port,
-        brand: data.brand,
-        target_price: data.target_price,
+        year: data.year || '',
+        power_type: data.power_type || '',
+        steering: data.steering || 'LHD',
+        color: data.color || '',
+        vin: data.vin || '',
+        quantity: data.quantity || '',
+        moq: data.moq || '',
+        target_price: data.target_price || '',
+        currency: data.currency || 'USD',
+        trade_terms: data.trade_terms || '',
+        delivery_date: data.delivery_date || '',
+        lead_source: data.lead_source || '',
+        competitor: data.competitor || '',
+        stage: data.stage || '',
       });
     }
     setEditing(null);
@@ -1304,7 +1356,6 @@ function LeadsMemory({ leads, inquiries, selectedLead, query, filters, filterOpt
     </section>
   );
 }
-
 function LeadProfile({ lead }) {
   if (!lead) {
     return (
